@@ -1,6 +1,17 @@
 import cv2
 import mediapipe as mp
+from handLandmarksDefine import *
 import time
+import threading
+
+
+def countdown():
+    for i in range(3, 0, -1):
+        print(i)
+        time.sleep(1)
+
+
+
 
 # lm = landmark
 class handDetector():
@@ -60,16 +71,18 @@ class drawClass():
         self.thickness = thickness
 
     def draw(self, img):
-        cv2.rectangle(img, (self.top_left_x, self.top_left_y),
-                      (self.top_left_x + self.width, self.top_left_y + self.height), self.color, self.thickness)
+        cv2.rectangle(img, (self.top_left_x, self.top_left_y), (self.top_left_x + self.width, self.top_left_y + self.height), self.color, self.thickness)
 
 
-    def detectHandInsideArea(self, lmList):
+    def detectHandInsideArea(self, lmList, interestPointsOnHand):
         if len(lmList) != 0:
-            if self.top_left_x <= lmList[4][1] <= self.top_left_x + self.width and self.top_left_y <= lmList[4][2] <= self.top_left_y + self.height:
-                self.color = (0,255,0)
-                #return 1
+            if self.top_left_x <= lmList[INDEX_FINGER_TIP][1] <= self.top_left_x + self.width and self.top_left_y <= lmList[INDEX_FINGER_TIP][2] <= self.top_left_y + self.height\
+                    and self.top_left_x <= lmList[MIDDLE_FINGER_TIP][1] <= self.top_left_x + self.width and self.top_left_y <= lmList[MIDDLE_FINGER_TIP][2] <= self.top_left_y + self.height:
+                self.color = (0, 255, 0)
+                return 1
             else: self.color = (0,0,255)
+
+
 
 
 def main():
@@ -77,20 +90,30 @@ def main():
     cap.set(3, 1680)  # window width
     cap.set(4, 1050)  # window height
     detector = handDetector()
-    rectangle_width = 300
-    rectangle_height = 200
-    rectangle_top_left_x = 0
-    rectangle_top_left_y = 0
-    rectangle_color = (0, 0, 255)  # red default
+    i=0
+    rectangle_width = [300, 400, 500]
+    rectangle_height = [500, 600, 400]
+    rectangle_top_left_x = [0,30,40]
+    rectangle_top_left_y = [0,50,60]
+    rectangle_color = (0, 0, 255)
     rectangle_thickness = 5
-    drawRec = drawClass(rectangle_width, rectangle_height, rectangle_top_left_x, rectangle_top_left_y, rectangle_color, rectangle_thickness)
+
+    interestPointsOnHand = [5, 6, 7, 8, 9, 10, 11, 12]
+
+
+
+    drawRec = drawClass(rectangle_width[0], rectangle_height[0], rectangle_top_left_x[0], rectangle_top_left_y[0], rectangle_color, rectangle_thickness)
     while True:
         success, img = cap.read()
         drawRec.draw(img)
         img = detector.findHands(img)
         lmList = detector.findPosition(img)
-        if drawRec.detectHandInsideArea(lmList) == 1:
-            drawRec.resetSizes(400,600,30,50,rectangle_color,rectangle_thickness)
+        if drawRec.detectHandInsideArea(lmList, interestPointsOnHand) == 1:
+            if(i == 2):
+                i=0
+            else:
+                i = i+1
+            drawRec.resetSizes(rectangle_width[i],rectangle_height[i],rectangle_top_left_x[i],rectangle_top_left_y[i], rectangle_color, rectangle_thickness)
 
         # if len(lmList) !=0:
         # if(lmList[4][1] > 1000 and  lmList[4][2]>500):
