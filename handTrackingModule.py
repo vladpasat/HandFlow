@@ -102,10 +102,10 @@ def main():
     cap.set(4, 1050)  # window height
     detector = handDetector()
     i=0
-    rectangle_width = [300, 400, 500]
-    rectangle_height = [500, 200, 400]
-    rectangle_top_left_x = [0, 500,800]
-    rectangle_top_left_y = [0, 200,60]
+    rectangle_width = [200, 200, 200, 100]
+    rectangle_height = [200, 200, 200, 100]
+    rectangle_top_left_x = [0, 500, 800, 1000]
+    rectangle_top_left_y = [0, 200, 60, 800]
     rectangle_color = (0, 0, 255)
     rectangle_thickness = 5
 
