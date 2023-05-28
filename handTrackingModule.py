@@ -2,7 +2,9 @@ import cv2
 import mediapipe as mp
 from handLandmarksDefine import *
 import time
-import threading
+from tracker import *
+
+tracker = EuclideanDistTracker()
 
 start_time = 0
 end_time = 0
@@ -92,25 +94,57 @@ class drawClass():
             else:
                 self.color = (0,0,255)
 
+class objectDetector():
+    def __init__(self):
+        self.backgroundSubtractor = cv2.createBackgroundSubtractorMOG2(history = 20, varThreshold = 40)
+        self.mask = 0
+        self.contours = 0
+        self.detections = []
+
+    def setMask(self, img):
+        self.mask = self.backgroundSubtractor.apply(img)
+        _, self.mask = cv2.threshold(self.mask, 254, 255, cv2.THRESH_BINARY)
+
+    def findContours(self, img, mode, method):
+        self.contours, _ = cv2.findContours(self.mask, mode, method)
+        for contour in self.contours:
+            area = cv2.contourArea(contour)
+            if area > 100:
+                x, y, w, h = cv2.boundingRect(contour)
+                #cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 3)
+                self.detections.append([x, y, w, h])
+
+        #obj tracking
+        rectangle_ids = tracker.update(self.detections)
+        for rectangle_id in rectangle_ids:
+            x, y, w, h, id = rectangle_id
+            cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 3)
+
+
+
+
+
+
 
 
 
 
 def main():
-    cap = cv2.VideoCapture(0)
-    cap.set(3, 1680)  # window width
-    cap.set(4, 1050)  # window height
+    cap = cv2.VideoCapture("ex.mp4")
+    cap.set(3, 1920)  # window width
+    cap.set(4, 1080)  # window height
     detector = handDetector()
     i=0
     rectangle_width = [200, 200, 200, 100]
     rectangle_height = [200, 200, 200, 100]
-    rectangle_top_left_x = [0, 500, 800, 1000]
-    rectangle_top_left_y = [0, 200, 60, 800]
+    rectangle_top_left_x = [100, 500, 800, 1000]
+    rectangle_top_left_y = [100, 200, 60, 800]
     rectangle_color = (0, 0, 255)
     rectangle_thickness = 5
 
     interestPointsOnHand = [5, 6, 7, 8, 9, 10, 11, 12]
 
+    objectDetect = objectDetector()
 
     drawRec = drawClass(rectangle_width[0], rectangle_height[0], rectangle_top_left_x[0], rectangle_top_left_y[0], rectangle_color, rectangle_thickness)
     while True:
@@ -119,7 +153,6 @@ def main():
         img = detector.findHands(img)
         lmList = detector.findPosition(img)
         if drawRec.detectHandInsideArea(lmList, interestPointsOnHand) == 1:
-
             if(i == 2):
                 i=0
             else:
@@ -129,6 +162,11 @@ def main():
         # if len(lmList) !=0:
         # if(lmList[4][1] > 1000 and  lmList[4][2]>500):
         # print(lmList[4][1], lmList[4][2]) #list item number is the hand landmark position
+
+
+
+        objectDetect.setMask(img)
+        objectDetect.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         cv2.imshow("Webcam", img)
         if cv2.waitKey(1) & 0xFF == ord('q'):
