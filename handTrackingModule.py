@@ -95,30 +95,7 @@ class drawClass():
                 self.color = (0,0,255)
 
 class objectDetector():
-    def __init__(self):
-        self.backgroundSubtractor = cv2.createBackgroundSubtractorMOG2(history = 20, varThreshold = 40)
-        self.mask = 0
-        self.contours = 0
-        self.detections = []
-
-    def setMask(self, img):
-        self.mask = self.backgroundSubtractor.apply(img)
-        _, self.mask = cv2.threshold(self.mask, 254, 255, cv2.THRESH_BINARY)
-
-    def findContours(self, img, mode, method):
-        self.contours, _ = cv2.findContours(self.mask, mode, method)
-        for contour in self.contours:
-            area = cv2.contourArea(contour)
-            if area > 100:
-                x, y, w, h = cv2.boundingRect(contour)
-                #cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 3)
-                self.detections.append([x, y, w, h])
-
-        #obj tracking
-        rectangle_ids = tracker.update(self.detections)
-        for rectangle_id in rectangle_ids:
-            x, y, w, h, id = rectangle_id
-            cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 3)
+    def __init__(self, lower_threshold, upper_threshold):
 
 
 
@@ -130,9 +107,20 @@ class objectDetector():
 
 
 def main():
-    cap = cv2.VideoCapture("ex.mp4")
-    cap.set(3, 1920)  # window width
-    cap.set(4, 1080)  # window height
+    cap = cv2.VideoCapture("example.mp4")
+    success, img = cap.read()
+    original_height, original_width, _ = img.shape
+    max_width = 1920
+    max_height = 1080
+    scale_x = max_width / original_width
+    scale_y = max_height / original_height
+    scale = min(scale_x, scale_y)
+    new_width = int(original_width * scale)
+    new_height = int(original_height * scale)
+    cv2.namedWindow('Scaled Video', cv2.WINDOW_NORMAL)
+    cv2.resizeWindow('Scaled Video', new_width, new_height)
+
+
     detector = handDetector()
     i=0
     rectangle_width = [200, 200, 200, 100]
@@ -149,9 +137,10 @@ def main():
     drawRec = drawClass(rectangle_width[0], rectangle_height[0], rectangle_top_left_x[0], rectangle_top_left_y[0], rectangle_color, rectangle_thickness)
     while True:
         success, img = cap.read()
-        drawRec.draw(img)
-        img = detector.findHands(img)
-        lmList = detector.findPosition(img)
+        resized_frame = cv2.resize(img, (new_width, new_height))
+        drawRec.draw(resized_frame)
+        resized_frame = detector.findHands(resized_frame)
+        lmList = detector.findPosition(resized_frame)
         if drawRec.detectHandInsideArea(lmList, interestPointsOnHand) == 1:
             if(i == 2):
                 i=0
@@ -164,11 +153,7 @@ def main():
         # print(lmList[4][1], lmList[4][2]) #list item number is the hand landmark position
 
 
-
-        objectDetect.setMask(img)
-        objectDetect.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
-        cv2.imshow("Webcam", img)
+        cv2.imshow('Scaled Video', resized_frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
