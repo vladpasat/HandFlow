@@ -5,6 +5,7 @@ By guiding the user's hand to specific points, it simplifies the process, making
 * Hand Tracking: Utilizes advanced hand tracking algorithms to accurately guide the user's hand.
 * Component Outline Display: Shows the outline of the component on the screen for precise placement.
 * User-friendly Interface: There is no need to use the mouse or keyboard, you can switch to the next or previous component with hand gestures
+* The user is able to train an AI model to recognize individual components!
 # Requirements
 Python 3.7
 
@@ -26,4 +27,7 @@ tensorflow
 ```
 pip install tensorflow
 ```
+# Usage
+Run handTrackingModule.py
 
+![sample](images/component_not_placed.png)
