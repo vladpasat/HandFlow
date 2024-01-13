@@ -29,6 +29,7 @@ tensorflow
 pip install tensorflow
 ```
 # Usage
+Video Demo: https://drive.google.com/file/d/1T-g8H8FMRgtZkFxLr6F5TRmC7R2uDru1/view?usp=sharing
 Run handTrackingModule.py
 
 <img src="images/component_not _placed.png" alt="component not placed">
